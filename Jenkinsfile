@@ -1,7 +1,7 @@
 pipeline {
 	agent { 
 		node {
-			//label 'PoseidonAgent'
+			label 'PoseidonAgent'
 			customWorkspace "C:\\NSS_${env.BRANCH_NAME}"
 			
 			}			
