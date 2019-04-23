@@ -50,7 +50,7 @@ pipeline {
 					bat "3_CreateSFDXProject.bat"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
-					bat "4_AuthenticateOrg.bat 3MVG9LzKxa43zqdKmeTTNjkqgDwAjZ45_9.n20NP8.nyUFLuAN0kxx_N9T6P_mNS236IoGsPjXBNpWfzFGCkq deployment.user@ef.com.lang.dev https://test.salesforce.com"
+					bat "4_AuthenticateOrg.bat 3MVG9Y6d_Btp4xp4wfBKmp3vGXkapSw0_.L6VfxxPxxxx26yt8aDtjIeeRQOoHhbj9idlRG_AcS0EHGP1SB7z jayashreenaikys@salesforce.com https://login.salesforce.com"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
 					bat "5_ConvertToMDAPI.bat"
@@ -60,7 +60,7 @@ pipeline {
 				}
 			}
 		}	
-		stage('Deploy to Dev environment of latest closed PR') {
+		/*stage('Deploy to Dev environment of latest closed PR') {
 			when {
 				branch 'develop' 
 			}
@@ -72,7 +72,7 @@ pipeline {
 					bat "3_CreateSFDXProject.bat"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
-					bat "4_AuthenticateOrg.bat 3MVG9LzKxa43zqdKmeTTNjkqgDwAjZ45_9.n20NP8.nyUFLuAN0kxx_N9T6P_mNS236IoGsPjXBNpWfzFGCkq deployment.user@ef.com.lang.dev https://test.salesforce.com"
+					bat "4_AuthenticateOrg.bat 3MVG9Y6d_Btp4xp4wfBKmp3vGXkapSw0_.L6VfxxPxxxx26yt8aDtjIeeRQOoHhbj9idlRG_AcS0EHGP1SB7z jayashreenaikys@salesforce.com https://login.salesforce.com"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
 					bat "5_ConvertToMDAPI.bat"
@@ -96,7 +96,7 @@ pipeline {
 					}
 				}
 			}
-		}
+		}*/
 		stage('Deployment of release into Prodution') {	
 			when {
 					branch 'stage*';
@@ -109,7 +109,7 @@ pipeline {
 					bat "3_CreateSFDXProject.bat"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
-					bat "4_AuthenticateOrg.bat 3MVG9LzKxa43zqdKmeTTNjkqgD1IOVvuarG1XqIIXsM6dYusKKamszn7EUm19ihAIlyEX1xdS0pNODkkY_0Um deployment.user@ef.com.lang.stage https://test.salesforce.com"
+					bat "4_AuthenticateOrg.bat 3MVG9Y6d_Btp4xp4wfBKmp3vGXkapSw0_.L6VfxxPxxxx26yt8aDtjIeeRQOoHhbj9idlRG_AcS0EHGP1SB7z jayashreenaikys@salesforce.com https://login.salesforce.com"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
 					bat "5_ConvertToMDAPI.bat"
@@ -120,7 +120,7 @@ pipeline {
 
 				input message: 'Please confirm that everything in the Stage environment is working well, Proceed with deployment to Production', ok: 'It works great!'	
 				dir(path: 'JenkinsAutomationBatchScripts') {
-					bat "4_AuthenticateOrg.bat 3MVG9HxRZv05HarRYTRNwbU.yTcFB8zrhYJSTHmnlqCCjvyhQdv5xHqRv.Q1.hBLf8cQpwaU3UcvbTddXxRAw deployment.user@ef.com.lang https://login.salesforce.com"
+					bat "4_AuthenticateOrg.bat 3MVG9Y6d_Btp4xp4wfBKmp3vGXkapSw0_.L6VfxxPxxxx26yt8aDtjIeeRQOoHhbj9idlRG_AcS0EHGP1SB7z jayashreenaikys@salesforce.com https://login.salesforce.com"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
 					bat "6_DeployToOrg.bat"
