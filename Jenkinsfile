@@ -2,7 +2,7 @@ pipeline {
 	agent { 
 		node {
 			label 'PoseidonAgent'
-			customWorkspace "C:\VisualStudioFolder\Jenkins"
+			customWorkspace "C:\\VisualStudioFolder\\Jenkins"
 			
 			}			
 	}
@@ -50,7 +50,7 @@ pipeline {
 					bat "3_CreateSFDXProject.bat"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
-					bat "4_AuthenticateOrg.bat 3MVG9Y6d_Btp4xp4wfBKmp3vGXkapSw0_.L6VfxxPxxxx26yt8aDtjIeeRQOoHhbj9idlRG_AcS0EHGP1SB7z jayashreenaikys@salesforce.com https://login.salesforce.com"
+					bat "4_AuthenticateOrg.bat consumerKey jayashreenaikys@salesforce.com https://login.salesforce.com"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
 					bat "5_ConvertToMDAPI.bat"
@@ -72,7 +72,7 @@ pipeline {
 					bat "3_CreateSFDXProject.bat"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
-					bat "4_AuthenticateOrg.bat 3MVG9Y6d_Btp4xp4wfBKmp3vGXkapSw0_.L6VfxxPxxxx26yt8aDtjIeeRQOoHhbj9idlRG_AcS0EHGP1SB7z jayashreenaikys@salesforce.com https://login.salesforce.com"
+					bat "4_AuthenticateOrg.bat consumerKey jayashreenaikys@salesforce.com https://login.salesforce.com"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
 					bat "5_ConvertToMDAPI.bat"
@@ -109,7 +109,7 @@ pipeline {
 					bat "3_CreateSFDXProject.bat"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
-					bat "4_AuthenticateOrg.bat 3MVG9Y6d_Btp4xp4wfBKmp3vGXkapSw0_.L6VfxxPxxxx26yt8aDtjIeeRQOoHhbj9idlRG_AcS0EHGP1SB7z jayashreenaikys@salesforce.com https://login.salesforce.com"
+					bat "4_AuthenticateOrg.bat consumerKey jayashreenaikys@salesforce.com https://login.salesforce.com"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
 					bat "5_ConvertToMDAPI.bat"
@@ -120,7 +120,7 @@ pipeline {
 
 				input message: 'Please confirm that everything in the Stage environment is working well, Proceed with deployment to Production', ok: 'It works great!'	
 				dir(path: 'JenkinsAutomationBatchScripts') {
-					bat "4_AuthenticateOrg.bat 3MVG9Y6d_Btp4xp4wfBKmp3vGXkapSw0_.L6VfxxPxxxx26yt8aDtjIeeRQOoHhbj9idlRG_AcS0EHGP1SB7z jayashreenaikys@salesforce.com https://login.salesforce.com"
+					bat "4_AuthenticateOrg.bat consumerKey jayashreenaikys@salesforce.com https://login.salesforce.com"
 				}
 				dir(path: 'JenkinsAutomationBatchScripts') {
 					bat "6_DeployToOrg.bat"
