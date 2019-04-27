@@ -1,64 +1,147 @@
-#!groovy
-import groovy.json.JsonSlurperClassic
-node { /**here**/ 
+pipeline {
+	agent { 
+		node {
+			label 'PoseidonAgent'
+			customWorkspace "C:\VisualStudioFolder\Jenkins"
+			
+			}			
+	}
+	parameters {
+		string(defaultValue: "0", description: 'What Pull Request ID to build?', name: 'id')
+		choice(choices: ['A', 'M'], description: 'What type of build (A/M)?', name: 'type')
+	}
+	stages {
+		stage('Installing custom tool....') {
+			steps {
+				tool name: 'toolbelt', type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
+			}
+	}
+		stage('Cleanup Working folder') {
+			steps {
+				dir(path: 'JenkinsAutomationBatchScripts') {
+				  bat "1_CleanupWorkingFolder.bat"
+				}
+			}
+		}
+		stage('Install NPM') {
+			steps {
+				dir(path: 'JenkinsAutomationBatchScripts') {
+				  bat "21_InstallNpm.bat"
+				  bat "22_InstallSFDX.bat"
+				}
+			}
+		}
+		stage('Test deployment of current PR into target environment') {	
+			when {
+				not {
+					anyOf {
+						branch 'release*';
+						branch 'master';
+						branch 'develop';
+						branch 'stage*';
+					}
+				} 
+			}
+			steps {
+				dir(path: 'AutomationJavascripts') {
+					bat "faster.bat deploy.js ${env.BRANCH_NAME}"
+				}
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "3_CreateSFDXProject.bat"
+				}
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "4_AuthenticateOrg.bat 3MVG9Y6d_Btp4xp4wfBKmp3vGXkapSw0_.L6VfxxPxxxx26yt8aDtjIeeRQOoHhbj9idlRG_AcS0EHGP1SB7z jayashreenaikys@salesforce.com https://login.salesforce.com"
+				}
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "5_ConvertToMDAPI.bat"
+				}	
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "6_DeployToOrg.bat -c -l RunLocalTests"
+				}
+			}
+		}	
+		/*stage('Deploy to Dev environment of latest closed PR') {
+			when {
+				branch 'develop' 
+			}
+			steps {
+				dir(path: 'AutomationJavascripts') {
+					bat "faster.bat deployLatestPRToBranch.js ${env.BRANCH_NAME} ${env.id} ${env.type}"
+				}
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "3_CreateSFDXProject.bat"
+				}
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "4_AuthenticateOrg.bat 3MVG9Y6d_Btp4xp4wfBKmp3vGXkapSw0_.L6VfxxPxxxx26yt8aDtjIeeRQOoHhbj9idlRG_AcS0EHGP1SB7z jayashreenaikys@salesforce.com https://login.salesforce.com"
+				}
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "5_ConvertToMDAPI.bat"
+				}
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "6_DeployToOrg.bat"
+				}
+			}			
+			post {
+				always {
+				    echo 'TODO: Run a clean up job'
+				}
+				success {
+					dir(path: 'JenkinsAutomationBatchScripts') {
+						bat "7_UpdateStatusOnGit.bat ${env.BRANCH_NAME} Deployed ${env.type} ${env.id}"
+					}
+				}
+				failure {
+					dir(path: 'JenkinsAutomationBatchScripts') {
+						bat "7_UpdateStatusOnGit.bat ${env.BRANCH_NAME} Deployment_Failed ${env.type} ${env.id}"
+					}
+				}
+			}
+		}*/
+		stage('Deployment of release into Prodution') {	
+			when {
+					branch 'stage*';
+			}
+			steps {
+				dir(path: 'AutomationJavascripts') {
+					bat "faster.bat deployLatestPRToBranch.js ${env.BRANCH_NAME} ${env.id} ${env.type}"
+				}
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "3_CreateSFDXProject.bat"
+				}
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "4_AuthenticateOrg.bat 3MVG9Y6d_Btp4xp4wfBKmp3vGXkapSw0_.L6VfxxPxxxx26yt8aDtjIeeRQOoHhbj9idlRG_AcS0EHGP1SB7z jayashreenaikys@salesforce.com https://login.salesforce.com"
+				}
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "5_ConvertToMDAPI.bat"
+				}
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "6_DeployToOrg.bat"
+				}
 
-    def BUILD_NUMBER=env.BUILD_NUMBER
-    def RUN_ARTIFACT_DIR="tests/${BUILD_NUMBER}"
-    def SFDC_USERNAME
-
-    def HUB_ORG=env.HUB_ORG_DH
-    def SFDC_HOST = env.SFDC_HOST_DH
-    def JWT_KEY_CRED_ID = env.JWT_CRED_ID_DH 
-    def CONNECTED_APP_CONSUMER_KEY=env.CONNECTED_APP_CONSUMER_KEY_DH
-
-    //def toolbelt = tool 'toolbelt'
-
-    /*stage('checkout source') {
-        // when running in multi-branch job, one must issue this command
-        checkout scm
-    }*/
-
-    withCredentials([file(credentialsId: JWT_KEY_CRED_ID, variable: 'jwt_key_file')]) {
-        stage('Create Scratch Org') {
-
-            rc = sh returnStatus: true, script: "sfdx force:auth:jwt:grant --clientid ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwtkeyfile ${jwt_key_file} --setdefaultdevhubusername --instanceurl ${SFDC_HOST}"
-            if (rc != 0) { error 'hub org authorization failed' }
-
-            // need to pull out assigned username
-            rmsg = sh returnStdout: true, script: "sfdx force:org:create --definitionfile config/project-scratch-def.json --json --setdefaultusername"
-            printf rmsg
-            def jsonSlurper = new JsonSlurperClassic()
-            def robj = jsonSlurper.parseText(rmsg)
-            if (robj.status != 0) { error 'org creation failed: ' + robj.message }
-            SFDC_USERNAME=robj.result.username
-            robj = null
-
-        }
-
-        stage('Push To Test Org') {
-            rc = sh returnStatus: true, script: "sfdx force:source:push --targetusername ${SFDC_USERNAME}"
-            if (rc != 0) {
-                error 'push failed'
-            }
-            // assign permset
-            rc = sh returnStatus: true, script: "sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
-            if (rc != 0) {
-                error 'permset:assign failed'
-            }
-        }
-
-        stage('Run Apex Test') {
-            sh "mkdir -p ${RUN_ARTIFACT_DIR}"
-            timeout(time: 120, unit: 'SECONDS') {
-                rc = sh returnStatus: true, script: "sfdx force:apex:test:run --testlevel RunLocalTests --outputdir ${RUN_ARTIFACT_DIR} --resultformat tap --targetusername ${SFDC_USERNAME}"
-                if (rc != 0) {
-                    error 'apex test run failed'
-                }
-            }
-        }
-
-        stage('collect results') {
-            junit keepLongStdio: true, testResults: 'tests/**/*-junit.xml'
-        }
-    }
+				input message: 'Please confirm that everything in the Stage environment is working well, Proceed with deployment to Production', ok: 'It works great!'	
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "4_AuthenticateOrg.bat 3MVG9Y6d_Btp4xp4wfBKmp3vGXkapSw0_.L6VfxxPxxxx26yt8aDtjIeeRQOoHhbj9idlRG_AcS0EHGP1SB7z jayashreenaikys@salesforce.com https://login.salesforce.com"
+				}
+				dir(path: 'JenkinsAutomationBatchScripts') {
+					bat "6_DeployToOrg.bat"
+				}
+			}	
+			post {
+				always {
+				    echo 'TODO: Run a clean up job'
+				}
+				success {
+					dir(path: 'JenkinsAutomationBatchScripts') {
+						bat "7_UpdateStatusOnGit.bat ${env.BRANCH_NAME} Deployed ${env.type} ${env.id}"
+					}
+				}
+				failure {
+					dir(path: 'JenkinsAutomationBatchScripts') {
+						bat "7_UpdateStatusOnGit.bat ${env.BRANCH_NAME} Deployment_Failed ${env.type} ${env.id}"
+					}
+				}
+			}	
+		}
+		
+	}
 }
